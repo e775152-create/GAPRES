@@ -39,9 +39,12 @@ class PedidoController extends Controller
             (object)['id' => 4, 'numero' => 4, 'foto' => 'public/vendor/adminlte/dist/img/mesa.jpeg'],
         ]);
 
-        $productos = Menu::where('estado', 'Activo')->get();
+       $productosPorCategoria = Menu::where('estado', 'Activo')
+       ->orderBy('categoria')
+       ->get()
+       ->groupBy('categoria'); // Agrupa por categoría
 
-        return view('pedidos.create', compact('mesas', 'productos'));
+        return view('pedidos.create', compact('mesas', 'productosPorCategoria'));
     }
 
     /**
@@ -63,9 +66,9 @@ class PedidoController extends Controller
                             ? $request->fecha
                             : now()->toDateString(), // <--- si no llega, pone la fecha de hoy
         'total'       => $request->total,
-        'observacion' => $request->observacion,
         'estado'      => $request->estado,
         'id_usuario'  => $request->id_usuario,
+        'observaciones' => $request->observaciones,
     ]);
 
     return redirect()->route('pedidos.index')
@@ -127,10 +130,10 @@ class PedidoController extends Controller
         $request->validate([
             'num_mesa'   => 'required|integer',
             'fecha'      => 'nullable|date',   // <- antes era required
-            'total'      => 'required|numeric|min:0',
-            'observacion'=> 'nullable|string|max:255',
-            'estado'     => 'required|in:PENDIENTE,FINALIZADO',
             'id_usuario' => 'required|integer',
-        ]);
+            'total'      => 'required|numeric|min:0',
+            'estado'     => 'required|in:PENDIENTE,FINALIZADO',
+            'observaciones' => 'nullable|string|max:500',
+        ]); 
     }
 }

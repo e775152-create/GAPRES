@@ -18,7 +18,7 @@
         //$config['paging'] = true;
         //$config['lengthMenu'] = [10, 50, 100, 500];
         @endphp
-        <x-adminlte-datatable id="table1" :heads="['Id', 'Nombre', 'Precio', 'Estado', 'Acciones']" head-theme="dark"
+        <x-adminlte-datatable id="table1" :heads="['Id', 'Nombre', 'Precio', 'Estado', 'Categoria', 'Acciones']" head-theme="dark"
             :config=$config striped hoverable with-buttons>
             @foreach ($menus as $menu)
             <tr>
@@ -32,6 +32,7 @@
                     <h5><span class="badge badge-danger">{{ $menu->estado }}</span></h5>
                     @endif
                 </td>
+                <td>{{ $menu->categoria }}</td>
                 <td>
                     <a class="btn btn-info" href="{{ route('menus.show', $menu->id) }}" role="button">
                         <i class="far fa-eye fa-fw"></i></a>

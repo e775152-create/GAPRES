@@ -25,11 +25,10 @@
         @foreach($mesas as $mesa)
         <div class="col-md-3">
             <div class="card h-100">
-                {{-- Ahora usamos el campo foto de cada mesa --}}
                 <img src="{{ asset('vendor/adminlte/dist/img/mesa.jpeg') }}"
-     alt="Mesa {{ $mesa->numero }}"
-     class="card-img-top img-fluid"
-     style="height:160px;object-fit:cover;">
+                     alt="Mesa {{ $mesa->numero }}"
+                     class="card-img-top img-fluid"
+                     style="height:160px;object-fit:cover;">
                 <div class="card-body text-center">
                     <h5>Mesa {{ $mesa->numero }}</h5>
                     <button type="button" class="btn btn-primary seleccionar-mesa" data-id="{{ $mesa->numero }}">
@@ -48,26 +47,47 @@
 
 {{-- Selección de Productos --}}
 <x-adminlte-card title="Seleccione Productos" theme="success">
-    <div class="row">
-        @foreach($productos as $producto)
-        <div class="col-md-3">
-            <div class="card h-100">
-                <img src="{{ asset('img/productos/'.$producto->imagen) }}" 
-                     class="card-img-top" 
-                     alt="{{ $producto->nombre }}" 
-                     style="height:160px;object-fit:cover;">
-                <div class="card-body text-center">
-                    <h5>{{ $producto->nombre }}</h5>
-                    <p><strong>${{ $producto->precio }}</strong></p>
-                    <button class="btn btn-success agregar-producto"
-                        data-id="{{ $producto->id }}"
-                        data-nombre="{{ $producto->nombre }}"
-                        data-precio="{{ $producto->precio }}">
-                        Agregar
-                    </button>
+    <ul class="nav nav-tabs" id="categoriaTabs" role="tablist">
+        @foreach($productosPorCategoria as $categoria => $productos)
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @if($loop->first) active @endif" 
+                        id="tab-{{ Str::slug($categoria) }}" 
+                        data-bs-toggle="tab" 
+                        data-bs-target="#categoria-{{ Str::slug($categoria) }}" 
+                        type="button" role="tab">
+                    {{ $categoria }}
+                </button>
+            </li>
+        @endforeach
+    </ul>
+    <div class="tab-content mt-3">
+        @foreach($productosPorCategoria as $categoria => $productos)
+            <div class="tab-pane fade @if($loop->first) show active @endif" 
+                 id="categoria-{{ Str::slug($categoria) }}" 
+                 role="tabpanel">
+                <div class="row">
+                    @foreach($productos as $producto)
+                        <div class="col-md-3 mb-3">
+                            <div class="card h-100">
+                                <img src="{{ asset('img/productos/'.$producto->imagen) }}" 
+                                     class="card-img-top" 
+                                     alt="{{ $producto->nombre }}" 
+                                     style="height:160px;object-fit:cover;">
+                                <div class="card-body text-center">
+                                    <h5>{{ $producto->nombre }}</h5>
+                                    <p><strong>${{ $producto->precio }}</strong></p>
+                                    <button class="btn btn-success agregar-producto"
+                                        data-id="{{ $producto->id }}"
+                                        data-nombre="{{ $producto->nombre }}"
+                                        data-precio="{{ $producto->precio }}">
+                                        Agregar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             </div>
-        </div>
         @endforeach
     </div>
 </x-adminlte-card>
@@ -77,7 +97,6 @@
     <form method="POST" action="{{ route('pedidos.store') }}">
         @csrf
 
-        {{-- Campos ocultos --}}
         <input type="hidden" name="num_mesa" id="mesa_id">
         <input type="hidden" name="fecha" value="{{ now()->format('Y-m-d') }}">
         <input type="hidden" name="id_usuario" value="{{ auth()->user()->id ?? 1 }}">
@@ -100,6 +119,13 @@
 
         <h4>Total: $<span id="total">0.00</span></h4>
 
+        {{-- Observaciones --}}
+        <div class="form-group mt-3">
+            <label for="observaciones"><strong>Observaciones:</strong></label>
+            <textarea name="observaciones" id="observaciones" class="form-control" rows="3" placeholder="Escribe aquí alguna observación del pedido..."></textarea>
+
+        </div>
+
         <div class="form-group col-md-6 mt-3">
             <x-adminlte-button class="btn btn-primary mr-2" type="submit" label="Guardar Pedido" theme="primary" icon="fas fa-save" />
             <a href="{{ route('pedidos.index') }}" class="btn btn-secondary">
@@ -109,7 +135,6 @@
     </form>
 </x-adminlte-card>
 
-{{-- Mensaje de éxito --}}
 @if(session('success'))
     <div class="alert alert-success mt-3">{{ session('success') }}</div>
 @endif
@@ -117,6 +142,9 @@
 @stop
 
 @section('js')
+{{-- Bootstrap 5 --}}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
     let total = 0;
     let index = 0;
@@ -156,7 +184,6 @@
                     <button type="button" class="btn btn-danger btn-sm eliminar">X</button>
                 </td>
             `;
-
             tbody.appendChild(fila);
             actualizarTotal();
 
@@ -192,6 +219,7 @@
         document.getElementById('input_total').value = total.toFixed(2);
     }
 
+    // Validación antes de enviar
     document.querySelector('form').addEventListener('submit', function (e) {
         if (!document.getElementById('mesa_id').value) {
             e.preventDefault();
@@ -201,6 +229,15 @@
             e.preventDefault();
             Swal.fire('Error', 'Debes agregar al menos un producto al pedido.', 'error');
         }
+    });
+
+    // Forzar pestañas Bootstrap 5
+    document.querySelectorAll('#categoriaTabs button').forEach(tabBtn => {
+        tabBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            let tab = new bootstrap.Tab(this);
+            tab.show();
+        });
     });
 </script>
 @stop

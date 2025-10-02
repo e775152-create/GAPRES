@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('nombre',50)->nullable();
             $table->string('precio',50)->nullable();
             $table->string('estado',10)->default('Activo')->nullable();
+            $table->string('categoria',50)->nullable();
             $table->timestamps();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();

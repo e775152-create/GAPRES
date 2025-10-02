@@ -14,6 +14,7 @@ class Menu extends Model
     protected $fillable = [
         'nombre',
         'precio',
-        'estado'
+        'estado',
+        'categoria'
     ];
 }

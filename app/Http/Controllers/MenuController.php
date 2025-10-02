@@ -111,6 +111,7 @@ class MenuController extends Controller
             'nombre' => 'required|string|max:80',
             'precio' => 'required|string|max:80',
             'estado' => 'nullable|string|max:20',
+            'categoria' => 'required|string|max:80',
         ]);
     }
 }

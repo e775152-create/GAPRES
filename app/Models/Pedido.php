@@ -10,15 +10,24 @@ class Pedido extends Model
     use HasFactory;
 
     protected $fillable = [
-    'num_mesa',
-    'fecha',
-    'total',
-    'estado',
-    'id_usuario',
+        'num_mesa',
+        'fecha',
+        'id_usuario',
+        'total',
+        'estado',
+        'observaciones'
     ];
 
-    public function pedido()
+    // Relación con productos (Menu)
+    public function productos()
     {
-        return $this->belongsTo(DetallePedido::class, 'id_pedido');
+        return $this->belongsToMany(Menu::class, 'pedido_producto') // tabla pivot
+                    ->withPivot('cantidad'); // cantidad de cada producto
+    }
+
+    // Relación con usuario (opcional)
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'id_usuario');
     }
 }
