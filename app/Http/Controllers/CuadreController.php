@@ -3,113 +3,38 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Cuadre;
+use App\Models\Pedido;
+use Carbon\Carbon;
 
 class CuadreController extends Controller
 {
-    function __construct()
+    public function index(Request $request)
     {
-         $this->middleware('permission:ver-cuadres|crear-cuadres|editar-cuadres|borrar-cuadres', ['only' => ['index']]);
-         $this->middleware('permission:crear-cuadres', ['only' => ['create','store']]);
-         $this->middleware('permission:editar-cuadres', ['only' => ['edit','update']]);
-         $this->middleware('permission:borrar-cuadres', ['only' => ['destroy']]);
-    }
-    
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        // Obtener todos las lineas de aportes
-        $cuadres = Cuadre::all();
-        return view('cuadres.index', compact('cuadres'));
-    }
+        $hoy = Carbon::today();
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('cuadres.create');
-    }
+        // Resumen del día
+        $pedidosHoy = Pedido::whereDate('created_at', $hoy)->get();
+        $totalHoy = $pedidosHoy->sum('total');
+        $efectivoHoy = $pedidosHoy->where('metodo_pago', 'efectivo')->sum('total');
+        $tarjetaHoy = $pedidosHoy->where('metodo_pago', 'tarjeta')->sum('total');
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        // Validar la entrada de datos
-        $this->validateRequest($request);
+        // Rango de fechas para el histórico
+        $desde = $request->input('desde', Carbon::today()->subDays(7)->format('Y-m-d'));
+        $hasta = $request->input('hasta', Carbon::today()->format('Y-m-d'));
 
-        // Crear un nueva Cuadre en la base de datos
-        Cuadre::create($request->all());
-        // Mensaje de éxito
-        session()->flash('success', 'Cuadre creado correctamente.');
+        $historial = Pedido::whereBetween('fecha', [$desde, $hasta])
+                ->selectRaw('fecha as fecha, 
+                 SUM(total) as total,
+                 SUM(CASE WHEN metodo_pago = "efectivo" THEN total ELSE 0 END) as efectivo,
+                 SUM(CASE WHEN metodo_pago = "tarjeta" THEN total ELSE 0 END) as tarjeta')
+                ->groupBy('fecha')
+                ->orderBy('fecha', 'desc')
+                ->get();
 
-        return redirect()->route('cuadres.index')
-                         ->with('success', 'Cuadre creado exitosamente');
-    }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show($id)
-    {
-        // Obtener la Cuadre por su ID
-        $cuadres = Cuadre::findOrFail($id);
-
-        return view('cuadres.show', compact('cuadres'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        // Obtener la Cuadre por su ID
-        $cuadres = Cuadre::findOrFail($id);
-        return view('cuadres.edit', compact('cuadres'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
-    {
-        // Validar la entrada de datos
-        $this->validateRequest($request);
-
-        // Actualizar Cuadre en la base de datos
-        $cuadres = Cuadre::findOrFail($id);
-        $cuadres->update($request->all());
-        // Mensaje de éxito
-        session()->flash('success', 'Cuadre actualizado correctamente.');
-
-        return redirect()->route('cuadres.index')
-                         ->with('success', 'Cuadre actualizado exitosamente');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        // Eliminar la Cuadre de la base de datos
-        $cuadres = Cuadre::findOrFail($id);
-        $cuadres->delete();
-
-        return redirect()->route('cuadres.index')
-                         ->with('success', 'Cuadre eliminado exitosamente');
-    }
-
-    /**
-     * Método privado para validar el request.
-     */
-    private function validateRequest(Request $request)
-    {
-        $request->validate([
-            'nombre' => 'required|string|max:80',
-            'estado' => 'nullable|string|max:20',
-        ]);
+        return view('cuadre.index', compact(
+            'totalHoy', 'efectivoHoy', 'tarjetaHoy',
+            'historial', 'desde', 'hasta'
+        ));
     }
 }

@@ -5,17 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Proveedor extends Model
+class Inventario extends Model
 {
     use HasFactory;
 
-    protected $table = 'proveedores';
+    protected $table = 'inventario';
 
     protected $fillable = [
         'nombre',
-        'nit',
-        'email',
-        'telefono',
-        'direccion',
+        'categoria',
+        'cantidad',
+        'unidad',
+        'precio_unitario',
+        'estado'
     ];
 }

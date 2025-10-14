@@ -1,55 +1,66 @@
 @extends('adminlte::page')
 
-@section('title', 'MIILE')
+@section('title', 'Editar Empleado')
 
 @section('content_header')
-    <h1 class="m-0 text-dark">Editar Empleado</h1>
+    <h1>Editar Empleado</h1>
 @stop
 
 @section('content')
-    <x-adminlte-card>
-        <form method="POST" action="{{ route('empleados.update', $empleados->id) }}" enctype="multipart/form-data">
+    <x-adminlte-card theme="light" title="Actualizar información del empleado">
+
+        <form method="POST" action="{{ route('empleados.update', $empleado->id) }}" enctype="multipart/form-data">
             @csrf
             @method('PUT')
             <div class="row">
-                <x-adminlte-input name="nombre" label="Nombre" placeholder="Nombre del Empleado"
-                    fgroup-class="col-md-6" :value="$empleados->nombre" />
-            </div>
-            <div class="row">
-                <x-adminlte-select name="estado" label="Estado del Empleado" fgroup-class="col-md-2">
-                    <x-slot name="prependSlot">
-                        <div class="input-group-text bg-gradient-info">
-                            <i class="fas fa-list"></i>
-                        </div>
-                    </x-slot>
-                    <option value="">Seleccionar Estado</option>
-                    <option value="Activo" {{ $empleados->estado === 'Activo' ? 'selected' : '' }}>Activo</option>
-                    <option value="Retirado" {{ $empleados->estado === 'Inactivo' ? 'selected' : '' }}>Inactivo</option>
-                </x-adminlte-select>
+
+                <div class="col-md-6">
+                    <x-adminlte-input name="nombre" label="Nombre completo" value="{{ old('nombre', $empleado->nombre) }}"
+                        placeholder="Ingrese el nombre completo" required />
+                </div>
+
+                <div class="col-md-6">
+                    <x-adminlte-input name="documento" label="Documento"
+                        value="{{ old('documento', $empleado->documento) }}" placeholder="Cédula o documento" />
+                </div>
+
+                <div class="col-md-6">
+                    <x-adminlte-input name="cargo" label="Cargo" value="{{ old('cargo', $empleado->cargo) }}"
+                        placeholder="Ej: Cajero, Cocinero, Mesero" />
+                </div>
+
+                <div class="col-md-6">
+                    <x-adminlte-input name="email" label="Correo electrónico" type="email"
+                        value="{{ old('email', $empleado->email) }}" placeholder="ejemplo@correo.com" />
+                </div>
+
+                <div class="col-md-6">
+                    <x-adminlte-input name="telefono" label="Teléfono" value="{{ old('telefono', $empleado->telefono) }}"
+                        placeholder="Número de contacto" />
+                </div>
+
+                <div class="col-md-6">
+                    <x-adminlte-input name="direccion" label="Dirección"
+                        value="{{ old('direccion', $empleado->direccion) }}" placeholder="Dirección de residencia" />
+                </div>
+
+                <div class="col-md-6">
+                    <x-adminlte-select name="estado" label="Estado">
+                        <option value="Activo" {{ old('estado', $empleado->estado) == 'Activo' ? 'selected' : '' }}>Activo</option>
+                        <option value="Inactivo" {{ old('estado', $empleado->estado) == 'Inactivo' ? 'selected' : '' }}>Inactivo</option>
+                    </x-adminlte-select>
+                </div>
+
             </div>
 
-            <div class="row">
-                <div class="form-group col-md-6">
-                    <x-adminlte-button class="btn btn-success mr-2" type="submit" label="Guardar Cambios" theme="primary"
-                        icon="fas fa-save" />
-                    <a href="{{ route('empleados.index') }}" class="btn btn-secondary mr-2"><i
-                            class="fas fa-undo"></i> Cancelar</a>
-                </div>
+            <div class="mt-3">
+                <x-adminlte-button class="btn-flat" type="submit" label="Actualizar" theme="success"
+                    icon="fas fa-save" />
+                <a href="{{ route('empleados.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-undo"></i> Cancelar
+                </a>
             </div>
         </form>
+
     </x-adminlte-card>
 @stop
-
-@if (session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-@endif
-
-@section('footer')
-    <footer>
-        <p><img src="{{ asset('vendor/adminlte/dist/img/fralgom-foot.png') }}" alt="Logo Fralgom"> © {{ date('Y') }} Fralgóm Ingeniería
-            Informática. Todos los derechos reservados.</p>
-    </footer>
-@stop
-

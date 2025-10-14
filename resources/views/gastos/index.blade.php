@@ -9,95 +9,83 @@
 @section('content')
 <x-adminlte-card>
     @can('crear-gastos')
-    <a class="btn btn-primary mr-2" href="{{ route('gastos.create') }}" role="button"><i class="fa fa-plus"></i> Nuevo Gasto</a>
+    <a class="btn btn-primary mb-3" href="{{ route('gastos.create') }}">
+        <i class="fa fa-plus"></i> Nuevo Gasto
+    </a>
     @endcan
 
-    <div class="card-body">
-        @php
+    @php
         $config['language'] = ['url' => asset('vendor/datatables/es-CO.json')];
-        //$config['paging'] = true;
-        //$config['lengthMenu'] = [10, 50, 100, 500];
-        @endphp
-        <x-adminlte-datatable id="table1" :heads="['Id', 'Nombre', 'Estado', 'Acciones']" head-theme="dark"
-            :config=$config striped hoverable with-buttons>
-            @foreach ($gastos as $gasto)
-            <tr>
-                <td>{{ $gasto->id }}</td>
-                <td>{{ $gasto->nombre }}</td>
-                <td>
-                    @if ($gasto->estado == "Activo")
-                    <h5><span class="badge badge-success">{{ $gasto->estado }}</span></h5>
-                    @elseif ($gasto->estado == "Inactivo")
-                    <h5><span class="badge badge-danger">{{ $gasto->estado }}</span></h5>
-                    @endif
-                </td>
-                <td>
-                    <a class="btn btn-info" href="{{ route('gastos.show', $gasto->id) }}" role="button">
-                        <i class="far fa-eye fa-fw"></i></a>
-                    @can('editar-gastos')
-                    <a class="btn btn-success" href="{{ route('gastos.edit', $gasto->id) }}"
-                        role="button">
-                        <i class="fas fa-pencil-alt fa-fw"></i></a>
-                    @endcan
-                    <a class="btn btn-danger" href="{{ route('gastos.destroy', $gasto->id) }}" role="button">
-                        <i class="far fa-file-pdf fa-fw"></i></a>
-                    @can('borrar-gastos')
-                    <form method="POST" action="{{ route('gastos.destroy', $gasto->id) }}"
-                        style="display: inline;" class="delete-form">
-                        @csrf
-                        @method('DELETE')
-                        <button type="button" class="btn btn-warning delete-button">
-                            <i class="far fa-trash-alt fa-fw"></i>
-                        </button>
-                    </form>
-                    @endcan
-                </td>
-            </tr>
-            @endforeach
-        </x-adminlte-datatable>
-    </div>
+    @endphp
+
+    <x-adminlte-datatable id="table1" :heads="['ID', 'Concepto', 'Monto', 'Fecha', 'Empleado', 'Acciones']"
+        head-theme="dark" :config="$config" striped hoverable with-buttons>
+        @foreach ($gastos as $gasto)
+        <tr>
+            <td>{{ $gasto->id }}</td>
+            <td>{{ $gasto->concepto }}</td>
+            <td>${{ number_format($gasto->monto, 0, ',', '.') }}</td>
+            <td>{{ \Carbon\Carbon::parse($gasto->fecha)->format('d/m/Y') }}</td>
+            <td>{{ $gasto->empleado->nombre ?? 'No asignado' }}</td>
+            <td>
+                <a class="btn btn-info" href="{{ route('gastos.show', $gasto->id) }}">
+                    <i class="far fa-eye"></i>
+                </a>
+                @can('editar-gastos')
+                <a class="btn btn-success" href="{{ route('gastos.edit', $gasto->id) }}">
+                    <i class="fas fa-pencil-alt"></i>
+                </a>
+                @endcan
+                @can('borrar-gastos')
+                <form method="POST" action="{{ route('gastos.destroy', $gasto->id) }}" style="display:inline;"
+                    class="delete-form">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" class="btn btn-warning delete-button">
+                        <i class="far fa-trash-alt"></i>
+                    </button>
+                </form>
+                @endcan
+            </td>
+        </tr>
+        @endforeach
+    </x-adminlte-datatable>
 </x-adminlte-card>
 @stop
 
 @section('footer')
 <footer>
-    <p><img src="{{ asset('vendor/adminlte/dist/img/fralgom-foot.png') }}" alt="Logo Fralgom"> © {{ date('Y') }} Fralgóm
-        Ingeniería
-        Informática. Todos los derechos reservados.</p>
+    <p><img src="{{ asset('vendor/adminlte/dist/img/fralgom-foot.png') }}" alt="Logo Fralgom">
+        © {{ date('Y') }} Fralgóm Ingeniería Informática. Todos los derechos reservados.</p>
 </footer>
 @stop
 
 @section('js')
-
 @if ($message = Session::get('success'))
 <script>
 Swal.fire({
     title: "Operación Exitosa!",
     text: "{{ $message }}",
-    timer: 2000,
-    icon: "success"
+    icon: "success",
+    timer: 2000
 });
 </script>
 @endif
 
 <script>
-var deleteButtons = document.querySelectorAll('.delete-button');
-deleteButtons.forEach(function(button) {
-    button.addEventListener('click', function() {
-        var form = this.parentElement;
+document.querySelectorAll('.delete-button').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const form = this.closest('form');
         Swal.fire({
-            title: "¿Estás seguro de Eliminar este Gasto?",
-            text: "¡No se podrá recuperar la información!",
-            icon: "error",
+            title: "¿Eliminar gasto?",
+            text: "No se podrá recuperar la información.",
+            icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: "¡Sí, Eliminar!"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                form.submit();
-            }
-        })
+            confirmButtonText: "Sí, eliminar",
+            cancelButtonText: "Cancelar"
+        }).then(result => {
+            if (result.isConfirmed) form.submit();
+        });
     });
 });
 </script>

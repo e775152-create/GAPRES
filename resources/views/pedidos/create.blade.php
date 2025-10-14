@@ -8,7 +8,6 @@
 
 @section('content')
 
-{{-- Mostrar errores de validación --}}
 @if($errors->any())
     <div class="alert alert-danger">
         <ul>
@@ -75,7 +74,7 @@
                                      style="height:160px;object-fit:cover;">
                                 <div class="card-body text-center">
                                     <h5>{{ $producto->nombre }}</h5>
-                                    <p><strong>${{ $producto->precio }}</strong></p>
+                                    <p><strong>${{ number_format($producto->precio, 0, ',', '.') }}</strong></p>
                                     <button class="btn btn-success agregar-producto"
                                         data-id="{{ $producto->id }}"
                                         data-nombre="{{ $producto->nombre }}"
@@ -103,7 +102,6 @@
         <input type="hidden" name="total" id="input_total">
         <input type="hidden" name="estado" value="PENDIENTE">
 
-        {{-- Tabla de productos --}}
         <table class="table table-bordered" id="pedido-table">
             <thead>
                 <tr>
@@ -117,13 +115,22 @@
             <tbody></tbody>
         </table>
 
-        <h4>Total: $<span id="total">0.00</span></h4>
+        <h4>Total: <span id="total">0</span></h4>
+
+        {{-- Método de Pago --}}
+        <div class="form-group">
+    <label for="metodo_pago">Método de Pago</label>
+    <select name="metodo_pago" id="metodo_pago" class="form-control" required>
+        <option value="efectivo">Efectivo</option>
+        <option value="tarjeta">Tarjeta</option>
+    </select>
+</div>
+
 
         {{-- Observaciones --}}
         <div class="form-group mt-3">
             <label for="observaciones"><strong>Observaciones:</strong></label>
             <textarea name="observaciones" id="observaciones" class="form-control" rows="3" placeholder="Escribe aquí alguna observación del pedido..."></textarea>
-
         </div>
 
         <div class="form-group col-md-6 mt-3">
@@ -142,14 +149,12 @@
 @stop
 
 @section('js')
-{{-- Bootstrap 5 --}}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
     let total = 0;
     let index = 0;
 
-    // Seleccionar mesa
     document.querySelectorAll('.seleccionar-mesa').forEach(btn => {
         btn.addEventListener('click', function () {
             document.getElementById('mesa_id').value = this.dataset.id;
@@ -158,68 +163,65 @@
         });
     });
 
-    // Agregar productos
     document.querySelectorAll('.agregar-producto').forEach(btn => {
         btn.addEventListener('click', function () {
-            let id = this.dataset.id;
-            let nombre = this.dataset.nombre;
-            let precio = parseFloat(this.dataset.precio);
+            const id = this.dataset.id;
+            const nombre = this.dataset.nombre;
+            const precio = parseFloat(this.dataset.precio);
+            const tbody = document.querySelector('#pedido-table tbody');
+            let filaExistente = tbody.querySelector(`tr[data-id="${id}"]`);
 
-            let tbody = document.querySelector('#pedido-table tbody');
-            let fila = document.createElement('tr');
-            fila.innerHTML = `
-                <td>
-                    ${nombre}
-                    <input type="hidden" name="productos[${index}][id]" value="${id}">
-                </td>
-                <td>
-                    $${precio}
-                    <input type="hidden" name="productos[${index}][precio]" value="${precio}">
-                </td>
-                <td>
-                    <input type="number" name="productos[${index}][cantidad]" value="1" min="1" class="form-control cantidad">
-                </td>
-                <td class="subtotal">${precio.toFixed(2)}</td>
-                <td>
-                    <button type="button" class="btn btn-danger btn-sm eliminar">X</button>
-                </td>
-            `;
-            tbody.appendChild(fila);
+            if (filaExistente) {
+                let inputCantidad = filaExistente.querySelector('.cantidad');
+                inputCantidad.value = parseInt(inputCantidad.value) + 1;
+                let nuevoSubtotal = parseFloat(inputCantidad.value) * precio;
+                filaExistente.querySelector('.subtotal').innerText = formatearPesos(nuevoSubtotal);
+            } else {
+                let fila = document.createElement('tr');
+                fila.setAttribute('data-id', id);
+                fila.innerHTML = `
+                    <td>${nombre}<input type="hidden" name="productos[${index}][id]" value="${id}"></td>
+                    <td>${formatearPesos(precio)}<input type="hidden" name="productos[${index}][precio]" value="${precio}"></td>
+                    <td><input type="number" name="productos[${index}][cantidad]" value="1" min="1" class="form-control cantidad"></td>
+                    <td class="subtotal">${formatearPesos(precio)}</td>
+                    <td><button type="button" class="btn btn-danger btn-sm eliminar">X</button></td>
+                `;
+                tbody.appendChild(fila);
+                fila.querySelector('.eliminar').addEventListener('click', function () {
+                    fila.remove();
+                    actualizarTotal();
+                });
+                fila.querySelector('.cantidad').addEventListener('change', function () {
+                    let nuevaCantidad = parseInt(this.value);
+                    if (nuevaCantidad < 1 || isNaN(nuevaCantidad)) {
+                        this.value = 1;
+                        nuevaCantidad = 1;
+                    }
+                    let nuevoSubtotal = nuevaCantidad * precio;
+                    fila.querySelector('.subtotal').innerText = formatearPesos(nuevoSubtotal);
+                    actualizarTotal();
+                });
+                index++;
+            }
+
             actualizarTotal();
-
-            // Eliminar fila
-            fila.querySelector('.eliminar').addEventListener('click', function () {
-                fila.remove();
-                actualizarTotal();
-            });
-
-            // Cambiar cantidad
-            fila.querySelector('.cantidad').addEventListener('change', function () {
-                let nuevaCantidad = parseInt(this.value);
-                if (nuevaCantidad < 1 || isNaN(nuevaCantidad)) {
-                    this.value = 1;
-                    nuevaCantidad = 1;
-                }
-                let nuevoSubtotal = nuevaCantidad * precio;
-                fila.querySelector('.subtotal').innerText = nuevoSubtotal.toFixed(2);
-                actualizarTotal();
-            });
-
-            index++;
         });
     });
 
     function actualizarTotal() {
         let sum = 0;
         document.querySelectorAll('.subtotal').forEach(s => {
-            sum += parseFloat(s.innerText);
+            sum += parseFloat(s.innerText.replace(/\$|\./g, '')) || 0;
         });
         total = sum;
-        document.getElementById('total').innerText = total.toFixed(2);
-        document.getElementById('input_total').value = total.toFixed(2);
+        document.getElementById('total').innerText = formatearPesos(total);
+        document.getElementById('input_total').value = total;
     }
 
-    // Validación antes de enviar
+    function formatearPesos(valor) {
+        return '$' + valor.toLocaleString('es-CO', { minimumFractionDigits: 0 });
+    }
+
     document.querySelector('form').addEventListener('submit', function (e) {
         if (!document.getElementById('mesa_id').value) {
             e.preventDefault();
@@ -231,7 +233,6 @@
         }
     });
 
-    // Forzar pestañas Bootstrap 5
     document.querySelectorAll('#categoriaTabs button').forEach(tabBtn => {
         tabBtn.addEventListener('click', function (e) {
             e.preventDefault();

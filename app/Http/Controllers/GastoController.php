@@ -2,114 +2,94 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Gasto;
+use App\Models\Empleado;
+use Illuminate\Http\Request;
 
 class GastoController extends Controller
 {
-    function __construct()
+    public function __construct()
     {
-         $this->middleware('permission:ver-gastos|crear-gastos|editar-gastos|borrar-gastos', ['only' => ['index']]);
-         $this->middleware('permission:crear-gastos', ['only' => ['create','store']]);
-         $this->middleware('permission:editar-gastos', ['only' => ['edit','update']]);
-         $this->middleware('permission:borrar-gastos', ['only' => ['destroy']]);
+        $this->middleware('permission:ver-gastos|crear-gastos|editar-gastos|borrar-gastos', ['only' => ['index']]);
+        $this->middleware('permission:crear-gastos', ['only' => ['create','store']]);
+        $this->middleware('permission:editar-gastos', ['only' => ['edit','update']]);
+        $this->middleware('permission:borrar-gastos', ['only' => ['destroy']]);
     }
-    
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
-        // Obtener todos las lineas de aportes
-        $gastos = Gasto::all();
+        $gastos = Gasto::with('empleado')->get();
         return view('gastos.index', compact('gastos'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        return view('gastos.create');
+        $empleados = Empleado::all();
+        return view('gastos.create', compact('empleados'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
-    {
-        // Validar la entrada de datos
-        $this->validateRequest($request);
+{
+    $request->validate([
+        'descripcion' => 'required|string|max:255',
+        'monto' => 'required|numeric|min:0',
+        'fecha' => 'required|date',
+        'categoria' => 'nullable|string|max:100',
+        'empleado_id' => 'nullable|exists:empleados,id',
+    ]);
 
-        // Crear un nueva Gasto en la base de datos
-        Gasto::create($request->all());
-        // Mensaje de éxito
-        session()->flash('success', 'Gasto creado correctamente.');
+    Gasto::create([
+        'descripcion' => $request->descripcion,
+        'monto' => $request->monto,
+        'fecha' => $request->fecha,
+        'categoria' => $request->categoria,
+        'empleado_id' => $request->empleado_id,
+    ]);
 
-        return redirect()->route('gastos.index')
-                         ->with('success', 'Gasto creado exitosamente');
-    }
+    return redirect()->route('gastos.index')->with('success', 'Gasto registrado correctamente');
+}
 
-    /**
-     * Display the specified resource.
-     */
+
     public function show($id)
     {
-        // Obtener la Gasto por su ID
-        $gastos = Gasto::findOrFail($id);
-
-        return view('gastos.show', compact('gastos'));
+        $gasto = Gasto::with('empleado')->findOrFail($id);
+        return view('gastos.show', compact('gasto'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit($id)
     {
-        // Obtener la Gasto por su ID
-        $gastos = Gasto::findOrFail($id);
-        return view('gastos.edit', compact('gastos'));
+        $gasto = Gasto::findOrFail($id);
+        $empleados = Empleado::all();
+        return view('gastos.edit', compact('gasto', 'empleados'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id)
     {
-        // Validar la entrada de datos
         $this->validateRequest($request);
+        $gasto = Gasto::findOrFail($id);
+        $gasto->update($request->all());
 
-        // Actualizar Gasto en la base de datos
-        $gastos = Gasto::findOrFail($id);
-        $gastos->update($request->all());
-        // Mensaje de éxito
-        session()->flash('success', 'Gasto actualizado correctamente.');
-
-        return redirect()->route('gastos.index')
-                         ->with('success', 'Gasto actualizado exitosamente');
+        return redirect()->route('gastos.index')->with('success', 'Gasto actualizado correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
-        // Eliminar la Gasto de la base de datos
-        $gastos = Gasto::findOrFail($id);
-        $gastos->delete();
+        $gasto = Gasto::findOrFail($id);
+        $gasto->delete();
 
-        return redirect()->route('gastos.index')
-                         ->with('success', 'Gasto eliminado exitosamente');
+        return redirect()->route('gastos.index')->with('success', 'Gasto eliminado correctamente.');
     }
 
-    /**
-     * Método privado para validar el request.
-     */
     private function validateRequest(Request $request)
     {
         $request->validate([
-            'nombre' => 'required|string|max:80',
-            'estado' => 'nullable|string|max:20',
+            'concepto' => 'required|string|max:100',
+            'monto' => 'required|numeric',
+            'fecha' => 'required|date',
+            'categoria' => 'nullable|string|max:50',
+            'metodo_pago' => 'nullable|string|max:50',
+            'descripcion' => 'nullable|string|max:255',
+            'empleado_id' => 'nullable|exists:empleados,id',
         ]);
     }
 }

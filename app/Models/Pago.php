@@ -5,25 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Entrada extends Model
+class Pago extends Model
 {
     use HasFactory;
 
-    protected $table = 'entradas';
-
     protected $fillable = [
-        'fecha',
-        'proveedor_id',
         'empleado_id',
-        'descripcion',
-        'total',
-        'estado'
+        'monto',
+        'fecha_pago',
+        'tipo_pago',
+        'observacion',
+        'estado',
     ];
-
-    public function proveedor()
-    {
-        return $this->belongsTo(Proveedor::class);
-    }
 
     public function empleado()
     {

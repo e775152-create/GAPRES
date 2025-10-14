@@ -10,6 +10,8 @@ use App\Http\Controllers\CuadreController;
 use App\Http\Controllers\CierreController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\PedidoController;
+use App\Http\Controllers\PagoController;
+use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\GastoController;
 use App\Http\Controllers\ConstruccionController;
 
@@ -55,13 +57,32 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('cuadres', CuadreController::class);
 
-    Route::resource('cierres', CierreController::class);
+    
+    Route::get('/cierre', [CierreController::class, 'index'])->name('cierres.index');
+    
+    Route::post('/cierre', [CierreController::class, 'cerrarDia'])->name('cierres.cerrar');
 
+    Route::get('/cierres/activar', function () {
+    return view('cierres.activar');
+    })->name('cierres.activar');
+
+    Route::post('/cierres/activarCuadre', [CierreController::class, 'activarCuadre'])->name('cierres.activarCuadre');
+
+    
+    Route::get('/cuadre', [App\Http\Controllers\CuadreController::class, 'index'])
+    ->name('cuadre.index')
+    ->middleware('auth');
+    
     Route::resource('menus', MenuController::class);
 
     Route::resource('pedidos', PedidoController::class);
 
     Route::resource('gastos', GastoController::class);
+
+    Route::resource('inventario', InventarioController::class);
+
+   Route::resource('pagos', App\Http\Controllers\PagoController::class);
+
 
     Route::resource('construccion', ConstruccionController::class);
 

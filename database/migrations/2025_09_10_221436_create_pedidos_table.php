@@ -13,8 +13,10 @@ return new class extends Migration
             $table->integer('num_mesa')->default(0);
             $table->date('fecha')->nullable();
             $table->decimal('total', 10, 2);
-            $table->enum('estado', ['PENDIENTE','FINALIZADO'])->default('PENDIENTE');
-            $table->unsignedBigInteger('id_usuario')->default(1); // Usuario que creó el pedido
+            $table->enum('metodo_pago', ['efectivo', 'tarjeta']);
+            $table->enum('estado', ['PENDIENTE', 'FINALIZADO'])->default('PENDIENTE');
+            $table->unsignedBigInteger('id_usuario')->default(1);
+            $table->string('observaciones')->nullable();
             $table->timestamps();
         });
     }

@@ -1,39 +1,40 @@
 @extends('adminlte::page')
 
-@section('title', 'MIILE')
+@section('title', 'Detalle del Proveedor')
 
 @section('content_header')
-    <h1 class="m-0 text-dark">Detalle del Proveedor</h1>
+    <h1>Detalle del Proveedor #{{ $proveedor->id }}</h1>
 @stop
 
 @section('content')
-    <x-adminlte-card>
-        <div class="row">
-            <div class="col-md-6">
-                <x-adminlte-info-box title="Nombre" text="{{ $proveedores->nombre }}" icon="fas fa-user" theme="info" />
-            </div>
-        </div>
+<x-adminlte-card theme="light">
 
-        <div class="row">
-            <div class="col-md-6">
-                <x-adminlte-info-box title="Estado del Proveedor" text="{{ $proveedores->estado }}"
-                    icon="fas fa-clipboard-check" theme="info" />
-            </div>
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <x-adminlte-info-box title="Nombre" text="{{ $proveedor->nombre }}" icon="fas fa-user" theme="info"/>
         </div>
-
-        <div class="row">
-            <div class="form-group col-md-6">
-                <a class="btn btn-secondary" href="{{ route('proveedores.index') }}"><i
-                        class="fas fa-undo"></i> Regresar</a>
-            </div>
+        <div class="col-md-3">
+            <x-adminlte-info-box title="NIT" text="{{ $proveedor->nit }}" icon="fas fa-id-card" theme="info"/>
         </div>
-    </x-adminlte-card>
-@stop
+        <div class="col-md-3">
+            <x-adminlte-info-box title="Email" text="{{ $proveedor->email }}" icon="fas fa-envelope" theme="info"/>
+        </div>
+        <div class="col-md-3">
+            <x-adminlte-info-box title="Teléfono" text="{{ $proveedor->telefono }}" icon="fas fa-phone" theme="info"/>
+        </div>
+    </div>
 
-@section('footer')
-    <footer>
-        <p><img src="{{ asset('vendor/adminlte/dist/img/fralgom-foot.png') }}" alt="Logo Fralgom"> © {{ date('Y') }}
-            Fralgóm Ingeniería
-            Informática. Todos los derechos reservados.</p>
-    </footer>
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <x-adminlte-info-box title="Dirección" text="{{ $proveedor->direccion }}" icon="fas fa-map-marker-alt" theme="info"/>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ route('proveedores.index') }}" class="btn btn-secondary">
+            <i class="fas fa-undo"></i> Volver
+        </a>
+    </div>
+
+</x-adminlte-card>
 @stop

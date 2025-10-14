@@ -18,43 +18,39 @@
         //$config['paging'] = true;
         //$config['lengthMenu'] = [10, 50, 100, 500];
         @endphp
-        <x-adminlte-datatable id="table1" :heads="['Id', 'Nombre', 'Estado', 'Acciones']" head-theme="dark"
-            :config=$config striped hoverable with-buttons>
-            @foreach ($empleados as $empleado)
-            <tr>
-                <td>{{ $empleado->id }}</td>
-                <td>{{ $empleado->nombre }}</td>
-                <td>
-                    @if ($empleado->estado == "Activo")
-                    <h5><span class="badge badge-success">{{ $empleado->estado }}</span></h5>
-                    @elseif ($empleado->estado == "Inactivo")
-                    <h5><span class="badge badge-danger">{{ $empleado->estado }}</span></h5>
-                    @endif
-                </td>
-                <td>
-                    <a class="btn btn-info" href="{{ route('empleados.show', $empleado->id) }}" role="button">
-                        <i class="far fa-eye fa-fw"></i></a>
-                    @can('editar-empleados')
-                    <a class="btn btn-success" href="{{ route('empleados.edit', $empleado->id) }}"
-                        role="button">
-                        <i class="fas fa-pencil-alt fa-fw"></i></a>
-                    @endcan
-                    <a class="btn btn-danger" href="{{ route('empleados.destroy', $empleado->id) }}" role="button">
-                        <i class="far fa-file-pdf fa-fw"></i></a>
-                    @can('borrar-empleados')
-                    <form method="POST" action="{{ route('empleados.destroy', $empleado->id) }}"
-                        style="display: inline;" class="delete-form">
-                        @csrf
-                        @method('DELETE')
-                        <button type="button" class="btn btn-warning delete-button">
-                            <i class="far fa-trash-alt fa-fw"></i>
-                        </button>
-                    </form>
-                    @endcan
-                </td>
-            </tr>
-            @endforeach
-        </x-adminlte-datatable>
+        <x-adminlte-datatable id="table1" :heads="['ID', 'Nombre', 'Cargo', 'Estado', 'Acciones']" head-theme="dark"
+    :config="$config" striped hoverable with-buttons>
+    @foreach ($empleados as $empleado)
+        <tr>
+            <td>{{ $empleado->id }}</td>
+            <td>{{ $empleado->nombre }}</td>
+            <td>{{ $empleado->cargo ?? 'Sin asignar' }}</td>
+            <td>
+                @if ($empleado->estado == 'Activo')
+                    <span class="badge badge-success">{{ $empleado->estado }}</span>
+                @else
+                    <span class="badge badge-danger">{{ $empleado->estado }}</span>
+                @endif
+            </td>
+            <td>
+                <a class="btn btn-info btn-sm" href="{{ route('empleados.show', $empleado->id) }}">
+                    <i class="far fa-eye"></i>
+                </a>
+                <a class="btn btn-success btn-sm" href="{{ route('empleados.edit', $empleado->id) }}">
+                    <i class="fas fa-pencil-alt"></i>
+                </a>
+                <form method="POST" action="{{ route('empleados.destroy', $empleado->id) }}" style="display:inline;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" class="btn btn-warning btn-sm delete-button">
+                        <i class="far fa-trash-alt"></i>
+                    </button>
+                </form>
+            </td>
+        </tr>
+    @endforeach
+</x-adminlte-datatable>
+
     </div>
 </x-adminlte-card>
 @stop

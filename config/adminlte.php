@@ -329,7 +329,7 @@ return [
         ],
         [
             'text'  => 'Entradas',
-            'icon_color' => 'cyan',  // Para información neutral
+            'icon_color' => 'blue',  // Para información neutral
             'route' => 'entradas.index',
             'can' => ['ver-entradas'],
             'icon' => 'fas fa-sign-in-alt',
@@ -345,29 +345,36 @@ return [
         ],
         [
             'text' => 'Proveedores',
-            'icon_color' => 'green',
+            'icon_color' => 'orange',
             'route' => 'proveedores.index',
             'can' => ['ver-proveedores'],
-            'icon' => 'fas fa-handshake',
+            'icon' => 'fas fa-truck',
+            'classes' => 'bg-light text-dark',
+        ],
+[
+            'text' => 'Inventario',
+            'icon_color' => 'indigo',
+            'route' => 'inventario.index',
+            'can' => ['ver-inventario'],
+            'icon' => 'fas fa-warehouse',
             'classes' => 'bg-light text-dark',
         ],
 
-
 [
             'text'  => 'Menu',
-            'icon_color' => 'cyan',  // Para información neutral
+            'icon_color' => 'gray',  // Para información neutral
             'route' => 'menus.index',
             'can' => ['ver-menus'],
-            'icon' => 'fas fa-sign-in-alt',
+            'icon' => 'fas fa-utensils',
             'classes' => 'bg-light text-dark',
         ],
 
         [
             'text'  => 'Pedidos',
-            'icon_color' => 'cyan',  // Para información neutral
+            'icon_color' => 'purple',  // Para información neutral
             'route' => 'pedidos.index',
             'can' => ['ver-pedidos'],
-            'icon' => 'fas fa-sign-in-alt',
+            'icon' => 'fas fa-receipt',
             'classes' => 'bg-light text-dark',
         ],
 
@@ -377,15 +384,15 @@ return [
         ],
         [
             'text' => 'Cuadre Factura',
-            'icon_color' => 'cyan',  // Laboratorio como área crítica, destacado
+            'icon_color' => 'teal',  // Laboratorio como área crítica, destacado
             'route'  => 'cuadres.index',
             'can'  => ['ver-cuadres'],
-            'icon' => 'fas fa-file-alt',
+            'icon' => 'fas fa-file-invoice-dollar',
             'classes' => 'bg-light text-dark',
         ],
         [
             'text' => 'Cierre Diario',
-            'icon_color' => 'yellow',  // Laboratorio como área crítica, destacado
+            'icon_color' => 'red',  // Laboratorio como área crítica, destacado
             'route'  => 'cierres.index',
             'can'  => ['ver-cierres'],
             'icon' => 'fas fa-calendar-check',
@@ -394,8 +401,8 @@ return [
         [
             'text' => 'Activar Cuadre',
             'icon_color' => 'green',  // Laboratorio como área crítica, destacado
-            'route'  => 'construccion.index',
-            'can'  => ['ver-laboratorio'],
+            'route'  => 'cierres.activar',
+            'can'  => ['ver-cierres'],
             'icon' => 'fas fa-toggle-on',
             'classes' => 'bg-light text-dark',
         ],
@@ -404,14 +411,7 @@ return [
             'icon' => 'fas fa-chart-line',
             'classes' => 'bg-secondary text-white',
             'submenu' => [   
-                [
-                    'text' => 'Cuadres',
-                    'icon_color' => 'orange',  // Cargos de los pacientes
-                    'route' => 'construccion.index',
-                    'can' => ['ver-cargo'],
-                    'icon' => 'fas fa-balance-scale',
-                    'classes' => 'bg-light text-dark',
-                ],
+                
             ],
         ],
         [
@@ -424,22 +424,7 @@ return [
                     'icon' => 'fas fa-boxes',
                     'classes' => 'bg-cyan text-white',
                     'submenu' => [
-                        [
-                            'text' => 'Productos',
-                            'icon_color' => 'cyan',  // Cargos de los pacientes
-                            'route' => 'construccion.index',
-                            'can' => ['ver-cargo'],
-                            'icon' => 'fas fa-boxes',
-                            'classes' => 'bg-light text-dark',
-                        ],
-                        [
-                            'text' => 'Cambio de Precios',
-                            'icon_color' => 'gray',  // Servicios ofrecidos
-                            'route' => 'construccion.index',
-                            'can' => ['ver-servicio'],
-                            'icon' => 'fas fa-dollar-sign',
-                            'classes' => 'bg-light text-dark',
-                        ],
+                                                
                     ],
                 ],
                 [
@@ -453,6 +438,14 @@ return [
                             'route' => 'gastos.index',
                             'can' => ['ver-gastos'],
                             'icon' => 'fas fa-credit-card',
+                            'classes' => 'bg-light text-dark',
+                        ],
+                        [
+                            'text' => 'Pagos',
+                            'icon_color' => 'success',  // Administración de examenes
+                            'route' => 'pagos.index',
+                            'can' => ['ver-Pagos'],
+                            'icon' => 'fas fa-money-check-alt',
                             'classes' => 'bg-light text-dark',
                         ],
                     ],

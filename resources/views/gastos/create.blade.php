@@ -1,53 +1,43 @@
 @extends('adminlte::page')
 
-@section('title', 'MIILE')
+@section('title', 'Registrar Gasto')
 
 @section('content_header')
     <h1 class="m-0 text-dark">Registrar Gasto</h1>
 @stop
 
 @section('content')
-    <x-adminlte-card>
-        <form method="POST" action="{{ route('gastos.store') }}" enctype="multipart/form-data">
-            @csrf
-            <div class="row">
-                <x-adminlte-input name="nombre" label="Nombre" placeholder="Nombre del Gasto"
-                    fgroup-class="col-md-6" />
-            </div>
-
-            <div class="row">
-                <x-adminlte-select name="estado" label="Estado del Gasto" fgroup-class="col-md-2">
-                    <x-slot name="prependSlot">
-                        <div class="input-group-text bg-gradient-info">
-                            <i class="fas fa-list"></i>
-                        </div>
-                    </x-slot>
-                    <option value="Activo">Activo</option>
-                    <option value="Retirado">Inactivo</option>
-                </x-adminlte-select>
-            </div>
-
-            <div class="row">
-                <div class="form-group col-md-6">
-                    <x-adminlte-button class="btn btn-primary mr-2" type="submit" label="Guardar Gasto" theme="primary"
-                        icon="fas fa-save" />
-                    <a href="{{ route('gastos.index') }}" class="btn btn-secondary mr-2"><i
-                            class="fas fa-undo"></i> Cancelar</a>
-                </div>
-            </div>
-        </form>
-    </x-adminlte-card>
-
-    @if (session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
+<x-adminlte-card>
+    <form method="POST" action="{{ route('gastos.store') }}">
+        @csrf
+        <div class="row">
+            <x-adminlte-input name="descripcion" label="Descripción" placeholder="Ej: Compra de verduras" fgroup-class="col-md-6" />
         </div>
-    @endif
-@stop
 
-@section('footer')
-    <footer>
-        <p><img src="{{ asset('vendor/adminlte/dist/img/fralgom-foot.png') }}" alt="Logo Fralgom"> © {{ date('Y') }} Fralgóm Ingeniería
-            Informática. Todos los derechos reservados.</p>
-    </footer>
+        <div class="row">
+            <x-adminlte-input name="monto" label="Monto" type="number" step="0.01" placeholder="Ej: 50000" fgroup-class="col-md-3" />
+            <x-adminlte-input name="fecha" label="Fecha" type="date" fgroup-class="col-md-3" />
+        </div>
+
+        <div class="row">
+            <x-adminlte-input name="categoria" label="Categoría" placeholder="Ej: Comida, Suministros, etc." fgroup-class="col-md-4" />
+        </div>
+
+        <div class="row">
+            <x-adminlte-select name="empleado_id" label="Empleado" fgroup-class="col-md-4">
+                <option value="">Seleccionar empleado</option>
+                @foreach($empleados as $empleado)
+                    <option value="{{ $empleado->id }}">{{ $empleado->nombre }}</option>
+                @endforeach
+            </x-adminlte-select>
+        </div>
+
+        <div class="row mt-3">
+            <div class="form-group col-md-6">
+                <x-adminlte-button class="btn btn-primary" type="submit" label="Guardar Gasto" icon="fas fa-save" />
+                <a href="{{ route('gastos.index') }}" class="btn btn-secondary"><i class="fas fa-undo"></i> Cancelar</a>
+            </div>
+        </div>
+    </form>
+</x-adminlte-card>
 @stop

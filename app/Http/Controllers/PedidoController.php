@@ -10,130 +10,112 @@ use Illuminate\Support\Facades\DB;
 
 class PedidoController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('permission:ver-pedidos|crear-pedidos|editar-pedidos|borrar-pedidos', ['only' => ['index']]);
-        $this->middleware('permission:crear-pedidos', ['only' => ['create', 'store']]);
-        $this->middleware('permission:editar-pedidos', ['only' => ['edit', 'update']]);
-        $this->middleware('permission:borrar-pedidos', ['only' => ['destroy']]);
-    }
-
-    /**
-     * Mostrar listado de pedidos.
-     */
     public function index()
     {
         $pedidos = Pedido::all();
         return view('pedidos.index', compact('pedidos'));
     }
 
-    /**
-     * Mostrar formulario de creación.
-     */
     public function create()
-    {
-        $mesas = collect([
-            (object)['id' => 1, 'numero' => 1, 'foto' => 'public/vendor/adminlte/dist/img/mesa.jpeg'],
-            (object)['id' => 2, 'numero' => 2, 'foto' => 'public/vendor/adminlte/dist/img/mesa.jpeg'],
-            (object)['id' => 3, 'numero' => 3, 'foto' => 'public/vendor/adminlte/dist/img/mesa.jpeg'],
-            (object)['id' => 4, 'numero' => 4, 'foto' => 'public/vendor/adminlte/dist/img/mesa.jpeg'],
-        ]);
+{
+    // Verificar si el día ya está cerrado
+    $cierreHoy = \App\Models\Cierre::whereDate('fecha', now()->toDateString())->first();
 
-       $productosPorCategoria = Menu::where('estado', 'Activo')
-       ->orderBy('categoria')
-       ->get()
-       ->groupBy('categoria'); // Agrupa por categoría
-
-        return view('pedidos.create', compact('mesas', 'productosPorCategoria'));
+    if ($cierreHoy) {
+        return redirect()->route('pedidos.index')
+            ->with('error', 'No puedes crear nuevos pedidos. El cierre diario ya se realizó.');
     }
 
-    /**
-     * Guardar un nuevo pedido.
-     */
-    public function store(Request $request)
-{
-    $request->validate([
-        'num_mesa'    => 'required|integer',
-        'total'       => 'required|numeric',
-        'estado'      => 'required|in:PENDIENTE,FINALIZADO',
-        'id_usuario'  => 'required|integer',
-        'fecha'       => 'nullable|date', // <--- importante
+    // Si no está cerrado, mostrar formulario normalmente
+    $mesas = collect([
+        (object)['id' => 1, 'numero' => 1],
+        (object)['id' => 2, 'numero' => 2],
+        (object)['id' => 3, 'numero' => 3],
+        (object)['id' => 4, 'numero' => 4],
     ]);
 
-    $pedido = Pedido::create([
-        'num_mesa'    => $request->num_mesa,
-        'fecha'       => $request->filled('fecha')
-                            ? $request->fecha
-                            : now()->toDateString(), // <--- si no llega, pone la fecha de hoy
-        'total'       => $request->total,
-        'estado'      => $request->estado,
-        'id_usuario'  => $request->id_usuario,
-        'observaciones' => $request->observaciones,
-    ]);
+    $productosPorCategoria = Menu::where('estado', 'Activo')
+    ->whereNotNull('categoria')
+    ->where('categoria', '<>', '')
+    ->orderBy('categoria')
+    ->get()
+    ->groupBy('categoria');
 
-    return redirect()->route('pedidos.index')
-        ->with('success', 'Pedido creado correctamente');
+return view('pedidos.create', compact('mesas', 'productosPorCategoria'));
+
 }
 
 
-    /**
-     * Mostrar un pedido.
-     */
+    public function store(Request $request)
+{
+    // Validamos los datos recibidos
+    $request->validate([
+        'num_mesa' => 'required|integer',
+        'total' => 'required|numeric',
+        'metodo_pago' => 'required|in:efectivo,tarjeta',
+    ]);
+
+    // Creamos el pedido
+    $pedido = new Pedido();
+    $pedido->num_mesa = $request->num_mesa;
+    $pedido->fecha = now();
+    $pedido->total = $request->total;
+    $pedido->metodo_pago = $request->metodo_pago; // 👈 aquí se guarda lo que venga del select
+    $pedido->estado = 'PENDIENTE';
+    $pedido->id_usuario = auth()->id() ?? 1;
+    $pedido->observaciones = $request->observaciones ?? null;
+    $pedido->save();
+
+    // Guardar los productos si los tienes aparte
+    if ($request->has('productos')) {
+    foreach ($request->productos as $producto) {
+        Menu::create([
+            'id_pedido' => $pedido->id,
+            'id_producto' => $producto['id'] ?? null,
+            'cantidad' => $producto['cantidad'] ?? 1,
+            'subtotal' => $producto['subtotal'] ?? 0, // 👈 si no existe, le pone 0
+        ]);
+    }
+}
+
+
+    return redirect()->route('pedidos.index')->with('success', 'Pedido creado correctamente.');
+}
+
+
     public function show($id)
     {
-        $pedido = Pedido::findOrFail($id);
+        $pedido = Pedido::with('productos')->findOrFail($id);
         return view('pedidos.show', compact('pedido'));
     }
 
-    /**
-     * Mostrar formulario de edición.
-     */
     public function edit($id)
     {
         $pedido = Pedido::findOrFail($id);
         return view('pedidos.edit', compact('pedido'));
     }
 
-    /**
-     * Actualizar pedido.
-     */
     public function update(Request $request, $id)
     {
-        $this->validateRequest($request);
+        $request->validate([
+            'num_mesa' => 'required|integer',
+            'fecha' => 'nullable|date',
+            'id_usuario' => 'required|integer',
+            'total' => 'required|numeric|min:0',
+            'estado' => 'required|in:PENDIENTE,FINALIZADO',
+            'metodo_pago' => 'required|in:efectivo,tarjeta',
+            'observaciones' => 'nullable|string|max:500',
+        ]);
 
         $pedido = Pedido::findOrFail($id);
         $pedido->update($request->all());
 
-        return redirect()
-            ->route('pedidos.index')
-            ->with('success', 'Pedido actualizado correctamente.');
+        return redirect()->route('pedidos.index')->with('success', 'Pedido actualizado correctamente.');
     }
 
-    /**
-     * Eliminar pedido.
-     */
     public function destroy($id)
     {
-        $pedido = Pedido::findOrFail($id);
-        $pedido->delete();
-
-        return redirect()
-            ->route('pedidos.index')
-            ->with('success', 'Pedido eliminado exitosamente.');
-    }
-
-    /**
-     * Validación común.
-     */
-    private function validateRequest(Request $request)
-    {
-        $request->validate([
-            'num_mesa'   => 'required|integer',
-            'fecha'      => 'nullable|date',   // <- antes era required
-            'id_usuario' => 'required|integer',
-            'total'      => 'required|numeric|min:0',
-            'estado'     => 'required|in:PENDIENTE,FINALIZADO',
-            'observaciones' => 'nullable|string|max:500',
-        ]); 
+        Pedido::findOrFail($id)->delete();
+        return redirect()->route('pedidos.index')->with('success', 'Pedido eliminado exitosamente.');
     }
 }

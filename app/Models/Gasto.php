@@ -12,7 +12,17 @@ class Gasto extends Model
     protected $table = 'gastos';
 
     protected $fillable = [
-        'nombre',
-        'estado'
+        'concepto',
+        'monto',
+        'fecha',
+        'categoria',
+        'metodo_pago',
+        'descripcion',
+        'empleado_id',
     ];
+
+    public function empleado()
+    {
+        return $this->belongsTo(Empleado::class);
+    }
 }

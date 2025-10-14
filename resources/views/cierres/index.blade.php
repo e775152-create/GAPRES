@@ -1,104 +1,65 @@
 @extends('adminlte::page')
 
-@section('title', 'Cierres')
+@section('title', 'Cierre Diario')
 
 @section('content_header')
-<h1 class="m-0 text-dark">Administración de Cierres</h1>
+    <h1>Cierre Diario</h1>
 @stop
 
 @section('content')
-<x-adminlte-card>
-    @can('crear-cierres')
-    <a class="btn btn-primary mr-2" href="{{ route('cierres.create') }}" role="button"><i class="fa fa-plus"></i> Nuevo Cierre</a>
-    @endcan
+<div class="container">
 
-    <div class="card-body">
-        @php
-        $config['language'] = ['url' => asset('vendor/datatables/es-CO.json')];
-        //$config['paging'] = true;
-        //$config['lengthMenu'] = [10, 50, 100, 500];
-        @endphp
-        <x-adminlte-datatable id="table1" :heads="['Id', 'Nombre', 'Estado', 'Acciones']" head-theme="dark"
-            :config=$config striped hoverable with-buttons>
-            @foreach ($cierres as $cierre)
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
+
+    @if($cierre)
+        <div class="alert alert-danger">
+            El cierre del día ya se ha realizado ({{ \Carbon\Carbon::parse($cierre->fecha)->format('d/m/Y') }}).
+        </div>
+    @else
+        <h4>Fecha actual: {{ date('d/m/Y') }}</h4>
+    @endif
+
+    <table class="table mt-3">
+        <thead>
             <tr>
-                <td>{{ $cierre->id }}</td>
-                <td>{{ $cierre->nombre }}</td>
-                <td>
-                    @if ($cierre->estado == "Activo")
-                    <h5><span class="badge badge-success">{{ $cierre->estado }}</span></h5>
-                    @elseif ($cierre->estado == "Inactivo")
-                    <h5><span class="badge badge-danger">{{ $cierre->estado }}</span></h5>
-                    @endif
-                </td>
-                <td>
-                    <a class="btn btn-info" href="{{ route('cierres.show', $cierre->id) }}" role="button">
-                        <i class="far fa-eye fa-fw"></i></a>
-                    @can('editar-cierres')
-                    <a class="btn btn-success" href="{{ route('cierres.edit', $cierre->id) }}"
-                        role="button">
-                        <i class="fas fa-pencil-alt fa-fw"></i></a>
-                    @endcan
-                    <a class="btn btn-danger" href="{{ route('cierres.destroy', $cierre->id) }}" role="button">
-                        <i class="far fa-file-pdf fa-fw"></i></a>
-                    @can('borrar-cierres')
-                    <form method="POST" action="{{ route('cierres.destroy', $cierre->id) }}"
-                        style="display: inline;" class="delete-form">
-                        @csrf
-                        @method('DELETE')
-                        <button type="button" class="btn btn-warning delete-button">
-                            <i class="far fa-trash-alt fa-fw"></i>
-                        </button>
-                    </form>
-                    @endcan
-                </td>
+                <th>Pedido</th>
+                <th>Mesa</th>
+                <th>Usuario</th>
+                <th>Total</th>
+                <th>Método de Pago</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($pedidos as $pedido)
+            <tr>
+                <td>{{ $pedido->id }}</td>
+                <td>{{ $pedido->num_mesa }}</td>
+                <td>{{ $pedido->usuario->name ?? '—' }}</td>
+                <td>{{ number_format($pedido->total, 2) }}</td>
+                <td>{{ ucfirst($pedido->metodo_pago) }}</td>
             </tr>
             @endforeach
-        </x-adminlte-datatable>
-    </div>
-</x-adminlte-card>
-@stop
+        </tbody>
+    </table>
 
-@section('footer')
-<footer>
-    <p><img src="{{ asset('vendor/adminlte/dist/img/fralgom-foot.png') }}" alt="Logo Fralgom"> © {{ date('Y') }} Fralgóm
-        Ingeniería
-        Informática. Todos los derechos reservados.</p>
-</footer>
-@stop
+    <h3>Totales del día</h3>
+    <ul>
+        <li><strong>Total Efectivo:</strong> {{ number_format($totalEfectivo, 2) }}</li>
+        <li><strong>Total Tarjeta:</strong> {{ number_format($totalTarjeta, 2) }}</li>
+        <li><strong>Total General:</strong> {{ number_format($totalGeneral, 2) }}</li>
+    </ul>
 
-@section('js')
-
-@if ($message = Session::get('success'))
-<script>
-Swal.fire({
-    title: "Operación Exitosa!",
-    text: "{{ $message }}",
-    timer: 2000,
-    icon: "success"
-});
-</script>
-@endif
-
-<script>
-var deleteButtons = document.querySelectorAll('.delete-button');
-deleteButtons.forEach(function(button) {
-    button.addEventListener('click', function() {
-        var form = this.parentElement;
-        Swal.fire({
-            title: "¿Estás seguro de Eliminar este Cierre?",
-            text: "¡No se podrá recuperar la información!",
-            icon: "error",
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: "¡Sí, Eliminar!"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                form.submit();
-            }
-        })
-    });
-});
-</script>
-@stop
+    @if(!$cierre)
+        <form action="{{ route('cierres.cerrar') }}" method="POST">
+            @csrf
+            <button type="submit" class="btn btn-success">Cerrar Día</button>
+        </form>
+    @endif
+</div>
+@endsection

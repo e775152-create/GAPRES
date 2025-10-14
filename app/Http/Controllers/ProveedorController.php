@@ -37,29 +37,30 @@ class ProveedorController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
-        // Validar la proveedor de datos
-        $this->validateRequest($request);
+{
+    $request->validate([
+        'nombre' => 'required|string|max:255',
+        'nit' => 'nullable|string|max:50',
+        'telefono' => 'nullable|string|max:50',
+        'email' => 'nullable|email|max:100',
+        'direccion' => 'nullable|string|max:255',
+    ]);
 
-        // Crear un nueva Proveedor en la base de datos
-        Proveedor::create($request->all());
-        // Mensaje de éxito
-        session()->flash('success', 'Proveedor creado correctamente.');
+    Proveedor::create($request->all());
 
-        return redirect()->route('proveedores.index')
-                         ->with('success', 'Proveedor creado exitosamente');
-    }
+    return redirect()->route('proveedores.index')->with('success', 'Proveedor agregado correctamente');
+}
+
 
     /**
      * Display the specified resource.
      */
-    public function show($id)
-    {
-        // Obtener la Proveedor por su ID
-        $proveedores = Proveedor::findOrFail($id);
+   public function show($id)
+{
+    $proveedor = Proveedor::findOrFail($id); // Trae el proveedor o da error 404
+    return view('proveedores.show', compact('proveedor')); // Pasa la variable a la vista
+}
 
-        return view('proveedores.show', compact('proveedores'));
-    }
 
     /**
      * Show the form for editing the specified resource.
@@ -108,8 +109,11 @@ class ProveedorController extends Controller
     private function validateRequest(Request $request)
     {
         $request->validate([
-            'nombre' => 'required|string|max:80',
-            'estado' => 'nullable|string|max:20',
+        'nombre' => 'required|string|max:255',
+        'nit' => 'nullable|string|max:50',
+        'telefono' => 'nullable|string|max:50',
+        'email' => 'nullable|email|max:100',
+        'direccion' => 'nullable|string|max:255',
         ]);
     }
 }

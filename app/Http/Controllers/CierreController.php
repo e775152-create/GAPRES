@@ -3,113 +3,76 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Pedido;
 use App\Models\Cierre;
+use Illuminate\Support\Facades\Auth;
 
 class CierreController extends Controller
 {
-    function __construct()
-    {
-         $this->middleware('permission:ver-cierres|crear-cierres|editar-cierres|borrar-cierres', ['only' => ['index']]);
-         $this->middleware('permission:crear-cierres', ['only' => ['create','store']]);
-         $this->middleware('permission:editar-cierres', ['only' => ['edit','update']]);
-         $this->middleware('permission:borrar-cierres', ['only' => ['destroy']]);
-    }
-    
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        // Obtener todos las lineas de aportes
-        $cierres = Cierre::all();
-        return view('cierres.index', compact('cierres'));
+        $fecha = date('Y-m-d');
+
+        // Buscar cierre del día (si ya existe)
+        $cierre = Cierre::where('fecha', $fecha)->first();
+
+        // Pedidos del día
+        $pedidos = Pedido::whereDate('created_at', $fecha)->get();
+
+        // Totales
+        $totalEfectivo = $pedidos->where('metodo_pago', 'efectivo')->sum('total');
+        $totalTarjeta  = $pedidos->where('metodo_pago', 'tarjeta')->sum('total');
+        $totalGeneral  = $pedidos->sum('total');
+
+        return view('cierres.index', compact(
+            'cierre',
+            'pedidos',
+            'totalEfectivo',
+            'totalTarjeta',
+            'totalGeneral'
+        ));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function cerrarDia(Request $request)
     {
-        return view('cierres.create');
-    }
+        $fecha = date('Y-m-d');
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        // Validar la entrada de datos
-        $this->validateRequest($request);
+        // Evitar duplicados
+        $existe = Cierre::where('fecha', $fecha)->first();
+        if ($existe) {
+            return redirect()->back()->with('error', 'El cierre del día ya se ha realizado.');
+        }
 
-        // Crear un nueva Cierre en la base de datos
-        Cierre::create($request->all());
-        // Mensaje de éxito
-        session()->flash('success', 'Cierre creado correctamente.');
+        $pedidos = Pedido::whereDate('created_at', $fecha)->get();
 
-        return redirect()->route('cierres.index')
-                         ->with('success', 'Cierre creado exitosamente');
-    }
+        $totalEfectivo = $pedidos->where('metodo_pago', 'efectivo')->sum('total');
+        $totalTarjeta  = $pedidos->where('metodo_pago', 'tarjeta')->sum('total');
+        $totalGeneral  = $pedidos->sum('total');
 
-    /**
-     * Display the specified resource.
-     */
-    public function show($id)
-    {
-        // Obtener la Cierre por su ID
-        $cierres = Cierre::findOrFail($id);
-
-        return view('cierres.show', compact('cierres'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        // Obtener la Cierre por su ID
-        $cierres = Cierre::findOrFail($id);
-        return view('cierres.edit', compact('cierres'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
-    {
-        // Validar la entrada de datos
-        $this->validateRequest($request);
-
-        // Actualizar Cierre en la base de datos
-        $cierres = Cierre::findOrFail($id);
-        $cierres->update($request->all());
-        // Mensaje de éxito
-        session()->flash('success', 'Cierre actualizado correctamente.');
-
-        return redirect()->route('cierres.index')
-                         ->with('success', 'Cierre actualizado exitosamente');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        // Eliminar la Cierre de la base de datos
-        $cierres = Cierre::findOrFail($id);
-        $cierres->delete();
-
-        return redirect()->route('cierres.index')
-                         ->with('success', 'Cierre eliminado exitosamente');
-    }
-
-    /**
-     * Método privado para validar el request.
-     */
-    private function validateRequest(Request $request)
-    {
-        $request->validate([
-            'nombre' => 'required|string|max:80',
-            'estado' => 'nullable|string|max:20',
+        Cierre::create([
+            'fecha' => $fecha,
+            'total_efectivo' => $totalEfectivo,
+            'total_tarjeta' => $totalTarjeta,
+            'total_general' => $totalGeneral,
+            'user_id' => Auth::id(),
         ]);
+
+        return redirect()->back()->with('success', 'Cierre realizado correctamente.');
     }
+    public function activarCuadre()
+{
+    $fecha = date('Y-m-d');
+
+    // Eliminamos el cierre del día actual si existe (para "reactivarlo")
+    $cierre = \App\Models\Cierre::where('fecha', $fecha)->first();
+
+    if (!$cierre) {
+        return redirect()->back()->with('error', 'No existe un cierre previo para reactivar.');
+    }
+
+    $cierre->delete();
+
+    return redirect()->back()->with('success', 'El cuadre ha sido activado. Ya puedes registrar nuevos pedidos.');
+}
+
 }

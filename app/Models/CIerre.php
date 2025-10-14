@@ -9,10 +9,13 @@ class Cierre extends Model
 {
     use HasFactory;
 
-    protected $table = 'cierres';
+    protected $table = 'cierres'; // tu tabla exacta
 
     protected $fillable = [
-        'nombre',
-        'estado'
+        'fecha',
+        'total_efectivo',
+        'total_tarjeta',
+        'total_general',
+        'user_id'
     ];
 }

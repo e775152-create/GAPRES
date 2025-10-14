@@ -6,24 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('gastos', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre',50)->nullable();
-            $table->string('estado',10)->default('Activo')->nullable();
+            $table->string('descripcion'); // Ejemplo: "Almuerzo del personal"
+            $table->decimal('monto', 10, 2);
+            $table->date('fecha')->default(now());
+            $table->string('categoria')->nullable(); // ejemplo: "Comida", "Servicios", etc.
+            $table->unsignedBigInteger('empleado_id')->nullable();
+            $table->foreign('empleado_id')->references('id')->on('empleados')->onDelete('set null');
             $table->timestamps();
-            $table->unsignedBigInteger('created_by')->nullable();
-            $table->unsignedBigInteger('updated_by')->nullable();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('gastos');

@@ -1,53 +1,46 @@
 @extends('adminlte::page')
 
-@section('title', 'MIILE')
+@section('title', 'Registrar Entrada')
 
 @section('content_header')
-    <h1 class="m-0 text-dark">Registrar Entrada</h1>
+    <h1 class="m-0 text-dark">Registrar Nueva Entrada</h1>
 @stop
 
 @section('content')
-    <x-adminlte-card>
-        <form method="POST" action="{{ route('entradas.store') }}" enctype="multipart/form-data">
-            @csrf
-            <div class="row">
-                <x-adminlte-input name="nombre" label="Nombre" placeholder="Nombre del Entrada"
-                    fgroup-class="col-md-6" />
-            </div>
-
-            <div class="row">
-                <x-adminlte-select name="estado" label="Estado del Entrada" fgroup-class="col-md-2">
-                    <x-slot name="prependSlot">
-                        <div class="input-group-text bg-gradient-info">
-                            <i class="fas fa-list"></i>
-                        </div>
-                    </x-slot>
-                    <option value="Activo">Activo</option>
-                    <option value="Retirado">Inactivo</option>
-                </x-adminlte-select>
-            </div>
-
-            <div class="row">
-                <div class="form-group col-md-6">
-                    <x-adminlte-button class="btn btn-primary mr-2" type="submit" label="Guardar Entrada" theme="primary"
-                        icon="fas fa-save" />
-                    <a href="{{ route('entradas.index') }}" class="btn btn-secondary mr-2"><i
-                            class="fas fa-undo"></i> Cancelar</a>
-                </div>
-            </div>
-        </form>
-    </x-adminlte-card>
-
-    @if (session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
+<x-adminlte-card>
+    <form method="POST" action="{{ route('entradas.store') }}">
+        @csrf
+        <div class="row">
+            <x-adminlte-input name="fecha" label="Fecha" type="date" fgroup-class="col-md-4" value="{{ date('Y-m-d') }}" />
+            <x-adminlte-select name="proveedor_id" label="Proveedor" fgroup-class="col-md-4">
+                <option value="">Seleccionar Proveedor</option>
+                @foreach ($proveedores as $proveedor)
+                    <option value="{{ $proveedor->id }}">{{ $proveedor->nombre }}</option>
+                @endforeach
+            </x-adminlte-select>
+            <x-adminlte-select name="empleado_id" label="Empleado" fgroup-class="col-md-4">
+                <option value="">Seleccionar Empleado</option>
+                @foreach ($empleados as $empleado)
+                    <option value="{{ $empleado->id }}">{{ $empleado->nombre }}</option>
+                @endforeach
+            </x-adminlte-select>
         </div>
-    @endif
-@stop
 
-@section('footer')
-    <footer>
-        <p><img src="{{ asset('vendor/adminlte/dist/img/fralgom-foot.png') }}" alt="Logo Fralgom"> © {{ date('Y') }} Fralgóm Ingeniería
-            Informática. Todos los derechos reservados.</p>
-    </footer>
+        <div class="row">
+            <x-adminlte-input name="total" label="Total" placeholder="Valor total" fgroup-class="col-md-4" type="number" step="0.01" />
+            <x-adminlte-select name="estado" label="Estado" fgroup-class="col-md-4">
+                <option value="Recibido">Recibido</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="Anulado">Anulado</option>
+            </x-adminlte-select>
+        </div>
+
+        <div class="row">
+            <x-adminlte-textarea name="descripcion" label="Descripción" rows=3 fgroup-class="col-md-12" placeholder="Detalle o notas adicionales..." />
+        </div>
+
+        <x-adminlte-button class="btn btn-primary mr-2" type="submit" label="Guardar Entrada" icon="fas fa-save"/>
+        <a href="{{ route('entradas.index') }}" class="btn btn-secondary"><i class="fas fa-undo"></i> Cancelar</a>
+    </form>
+</x-adminlte-card>
 @stop

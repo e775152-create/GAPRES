@@ -9,107 +9,67 @@ class EmpleadoController extends Controller
 {
     function __construct()
     {
-         $this->middleware('permission:ver-empleados|crear-empleados|editar-empleados|borrar-empleados', ['only' => ['index']]);
-         $this->middleware('permission:crear-empleados', ['only' => ['create','store']]);
-         $this->middleware('permission:editar-empleados', ['only' => ['edit','update']]);
-         $this->middleware('permission:borrar-empleados', ['only' => ['destroy']]);
+        $this->middleware('permission:ver-empleados|crear-empleados|editar-empleados|borrar-empleados', ['only' => ['index']]);
+        $this->middleware('permission:crear-empleados', ['only' => ['create','store']]);
+        $this->middleware('permission:editar-empleados', ['only' => ['edit','update']]);
+        $this->middleware('permission:borrar-empleados', ['only' => ['destroy']]);
     }
-    
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
-        // Obtener todos las lineas de aportes
         $empleados = Empleado::all();
         return view('empleados.index', compact('empleados'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return view('empleados.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        // Validar la empleado de datos
         $this->validateRequest($request);
-
-        // Crear un nueva Empleado en la base de datos
         Empleado::create($request->all());
-        // Mensaje de éxito
-        session()->flash('success', 'Empleado creado correctamente.');
-
-        return redirect()->route('empleados.index')
-                         ->with('success', 'Empleado creado exitosamente');
+        return redirect()->route('empleados.index')->with('success', 'Empleado creado exitosamente');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
-        // Obtener la Empleado por su ID
-        $empleados = Empleado::findOrFail($id);
-
-        return view('empleados.show', compact('empleados'));
+        $empleado = Empleado::findOrFail($id);
+        return view('empleados.show', compact('empleado'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit($id)
     {
-        // Obtener la Empleado por su ID
-        $empleados = Empleado::findOrFail($id);
-        return view('empleados.edit', compact('empleados'));
+        $empleado = Empleado::findOrFail($id);
+        return view('empleados.edit', compact('empleado'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id)
     {
-        // Validar la empleado de datos
         $this->validateRequest($request);
-
-        // Actualizar Empleado en la base de datos
-        $empleados = Empleado::findOrFail($id);
-        $empleados->update($request->all());
-        // Mensaje de éxito
-        session()->flash('success', 'Empleado actualizado correctamente.');
-
-        return redirect()->route('empleados.index')
-                         ->with('success', 'Empleado actualizado exitosamente');
+        $empleado = Empleado::findOrFail($id);
+        $empleado->update($request->all());
+        return redirect()->route('empleados.index')->with('success', 'Empleado actualizado exitosamente');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
-        // Eliminar la Empleado de la base de datos
-        $empleados = Empleado::findOrFail($id);
-        $empleados->delete();
-
-        return redirect()->route('empleados.index')
-                         ->with('success', 'Empleado eliminado exitosamente');
+        $empleado = Empleado::findOrFail($id);
+        $empleado->delete();
+        return redirect()->route('empleados.index')->with('success', 'Empleado eliminado exitosamente');
     }
 
-    /**
-     * Método privado para validar el request.
-     */
     private function validateRequest(Request $request)
     {
         $request->validate([
             'nombre' => 'required|string|max:80',
-            'estado' => 'nullable|string|max:20',
+            'documento' => 'nullable|string|max:30',
+            'cargo' => 'nullable|string|max:50',
+            'email' => 'nullable|email|max:100',
+            'telefono' => 'nullable|string|max:30',
+            'direccion' => 'nullable|string|max:150',
+            'estado' => 'required|string|max:20',
         ]);
     }
 }

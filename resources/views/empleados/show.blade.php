@@ -1,39 +1,45 @@
 @extends('adminlte::page')
 
-@section('title', 'MIILE')
+@section('title', 'Detalle del Empleado')
 
 @section('content_header')
-    <h1 class="m-0 text-dark">Detalle del Empleado</h1>
+    <h1>Detalle del Empleado #{{ $empleado->id }}</h1>
 @stop
 
 @section('content')
-    <x-adminlte-card>
-        <div class="row">
-            <div class="col-md-6">
-                <x-adminlte-info-box title="Nombre" text="{{ $empleados->nombre }}" icon="fas fa-user" theme="info" />
-            </div>
-        </div>
+<x-adminlte-card theme="light">
 
-        <div class="row">
-            <div class="col-md-6">
-                <x-adminlte-info-box title="Estado del Empleado" text="{{ $empleados->estado }}"
-                    icon="fas fa-clipboard-check" theme="info" />
-            </div>
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <x-adminlte-info-box title="Nombre" text="{{ $empleado->nombre }}" icon="fas fa-user" theme="info"/>
         </div>
-
-        <div class="row">
-            <div class="form-group col-md-6">
-                <a class="btn btn-secondary" href="{{ route('empleados.index') }}"><i
-                        class="fas fa-undo"></i> Regresar</a>
-            </div>
+        <div class="col-md-4">
+            <x-adminlte-info-box title="Documento" text="{{ $empleado->documento ?? 'No registrado' }}" icon="fas fa-id-card" theme="info"/>
         </div>
-    </x-adminlte-card>
-@stop
+        <div class="col-md-4">
+            <x-adminlte-info-box title="Cargo" text="{{ $empleado->cargo ?? 'Sin asignar' }}" icon="fas fa-briefcase" theme="info"/>
+        </div>
+    </div>
 
-@section('footer')
-    <footer>
-        <p><img src="{{ asset('vendor/adminlte/dist/img/fralgom-foot.png') }}" alt="Logo Fralgom"> © {{ date('Y') }}
-            Fralgóm Ingeniería
-            Informática. Todos los derechos reservados.</p>
-    </footer>
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <x-adminlte-info-box title="Correo" text="{{ $empleado->email ?? 'No registrado' }}" icon="fas fa-envelope" theme="info"/>
+        </div>
+        <div class="col-md-4">
+            <x-adminlte-info-box title="Teléfono" text="{{ $empleado->telefono ?? 'No registrado' }}" icon="fas fa-phone" theme="info"/>
+        </div>
+        <div class="col-md-4">
+            <x-adminlte-info-box title="Dirección" text="{{ $empleado->direccion ?? 'No registrada' }}" icon="fas fa-map-marker-alt" theme="info"/>
+        </div>
+    </div>
+
+    <x-adminlte-info-box title="Estado" text="{{ $empleado->estado }}" icon="fas fa-clipboard-check" theme="info"/>
+
+    <div class="mt-4">
+        <a href="{{ route('empleados.index') }}" class="btn btn-secondary">
+            <i class="fas fa-undo"></i> Volver
+        </a>
+    </div>
+
+</x-adminlte-card>
 @stop

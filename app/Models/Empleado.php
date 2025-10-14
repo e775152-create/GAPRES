@@ -13,6 +13,11 @@ class Empleado extends Model
 
     protected $fillable = [
         'nombre',
+        'documento',
+        'cargo',
+        'email',
+        'telefono',
+        'direccion',
         'estado'
     ];
 }

@@ -2,113 +2,78 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Entrada;
+use App\Models\Proveedor;
+use App\Models\Empleado;
+use Illuminate\Http\Request;
 
 class EntradaController extends Controller
 {
     function __construct()
     {
-         $this->middleware('permission:ver-entradas|crear-entradas|editar-entradas|borrar-entradas', ['only' => ['index']]);
-         $this->middleware('permission:crear-entradas', ['only' => ['create','store']]);
-         $this->middleware('permission:editar-entradas', ['only' => ['edit','update']]);
-         $this->middleware('permission:borrar-entradas', ['only' => ['destroy']]);
+        $this->middleware('permission:ver-entradas|crear-entradas|editar-entradas|borrar-entradas', ['only' => ['index']]);
+        $this->middleware('permission:crear-entradas', ['only' => ['create','store']]);
+        $this->middleware('permission:editar-entradas', ['only' => ['edit','update']]);
+        $this->middleware('permission:borrar-entradas', ['only' => ['destroy']]);
     }
-    
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
-        // Obtener todos las lineas de aportes
-        $entradas = Entrada::all();
+        $entradas = Entrada::with(['proveedor','empleado'])->get();
         return view('entradas.index', compact('entradas'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        return view('entradas.create');
+        $proveedores = Proveedor::all();
+        $empleados = Empleado::all();
+        return view('entradas.create', compact('proveedores', 'empleados'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        // Validar la entrada de datos
         $this->validateRequest($request);
-
-        // Crear un nueva Entrada en la base de datos
         Entrada::create($request->all());
-        // Mensaje de éxito
-        session()->flash('success', 'Entrada creado correctamente.');
-
-        return redirect()->route('entradas.index')
-                         ->with('success', 'Entrada creado exitosamente');
+        return redirect()->route('entradas.index')->with('success', 'Entrada registrada correctamente.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
-        // Obtener la Entrada por su ID
-        $entradas = Entrada::findOrFail($id);
-
-        return view('entradas.show', compact('entradas'));
+        $entrada = Entrada::with(['proveedor','empleado'])->findOrFail($id);
+        return view('entradas.show', compact('entrada'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit($id)
     {
-        // Obtener la Entrada por su ID
-        $entradas = Entrada::findOrFail($id);
-        return view('entradas.edit', compact('entradas'));
+        $entrada = Entrada::findOrFail($id);
+        $proveedores = Proveedor::all();
+        $empleados = Empleado::all();
+        return view('entradas.edit', compact('entrada', 'proveedores', 'empleados'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id)
     {
-        // Validar la entrada de datos
         $this->validateRequest($request);
-
-        // Actualizar Entrada en la base de datos
-        $entradas = Entrada::findOrFail($id);
-        $entradas->update($request->all());
-        // Mensaje de éxito
-        session()->flash('success', 'Entrada actualizado correctamente.');
-
-        return redirect()->route('entradas.index')
-                         ->with('success', 'Entrada actualizado exitosamente');
+        $entrada = Entrada::findOrFail($id);
+        $entrada->update($request->all());
+        return redirect()->route('entradas.index')->with('success', 'Entrada actualizada correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
-        // Eliminar la Entrada de la base de datos
-        $entradas = Entrada::findOrFail($id);
-        $entradas->delete();
-
-        return redirect()->route('entradas.index')
-                         ->with('success', 'Entrada eliminado exitosamente');
+        $entrada = Entrada::findOrFail($id);
+        $entrada->delete();
+        return redirect()->route('entradas.index')->with('success', 'Entrada eliminada correctamente.');
     }
 
-    /**
-     * Método privado para validar el request.
-     */
     private function validateRequest(Request $request)
     {
         $request->validate([
-            'nombre' => 'required|string|max:80',
+            'fecha' => 'required|date',
+            'proveedor_id' => 'nullable|integer|exists:proveedores,id',
+            'empleado_id' => 'nullable|integer|exists:empleados,id',
+            'descripcion' => 'nullable|string|max:255',
+            'total' => 'nullable|numeric|min:0',
             'estado' => 'nullable|string|max:20',
         ]);
     }
